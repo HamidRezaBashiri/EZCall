@@ -1,4 +1,4 @@
-package com.ezcall.ui.theme
+package com.ezcall.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

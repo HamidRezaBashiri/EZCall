@@ -1,4 +1,4 @@
-package com.ezcall.ui.theme
+package com.ezcall.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build
