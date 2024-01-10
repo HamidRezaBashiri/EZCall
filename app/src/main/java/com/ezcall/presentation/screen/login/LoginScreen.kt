@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -22,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +55,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import com.ezcall.R
 import com.ezcall.data.dataSource.remote.ApiResponse
+import com.ezcall.data.dataSource.remote.entities.LoginResponse
 import com.ezcall.presentation.CoroutinesErrorHandler
+import com.ezcall.presentation.TokenViewModel
 import com.ezcall.presentation.navigation.MainDestinations
 
 
@@ -65,11 +65,13 @@ import com.ezcall.presentation.navigation.MainDestinations
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
+    tokenViewModel: TokenViewModel = hiltViewModel(),
     onNavigateToSubScreen: (String, NavBackStackEntry) -> Unit,
     backStackEntry: NavBackStackEntry,
 ) {
 
     val loginResponse by viewModel.loginResponse.observeAsState(initial = ApiResponse.Idle)
+    val verifyResponse by viewModel.verifyResponse.observeAsState(initial = ApiResponse.Idle)
 
     val passwordFocusRequester = remember { FocusRequester() }
     val userNameFocusRequester = remember { FocusRequester() }
@@ -78,7 +80,41 @@ fun LoginScreen(
     var isErrorDisplayed by remember { mutableStateOf(false) }
     var isToastDisplayed by remember { mutableStateOf(false) }
 
+//    TODO fix verify apprently it runs in first run and shows toast and runns in aloop
+    val token by tokenViewModel.token.observeAsState()
+    LaunchedEffect(key1 = token, block = {
+        token?.let {
+            viewModel.verifyToken(it, coroutinesErrorHandler = object : CoroutinesErrorHandler {
+                override fun onError(message: String) {
+                    Log.e("LoginScreen token verify", "onError: ")
+                }
 
+            })
+        }
+    })
+
+    when (verifyResponse) {
+        is ApiResponse.Success -> onNavigateToSubScreen.invoke(
+            MainDestinations.HOME_ROUTE,
+            backStackEntry
+        )
+
+        is ApiResponse.Failure -> {
+            Text(stringResource(R.string.login))
+            LaunchedEffect(key1 = Unit, block = {
+                isToastDisplayed = true
+            })
+            if (!isToastDisplayed) {
+                Toast.makeText(
+                    LocalContext.current,
+                    (verifyResponse as ApiResponse.Failure).errorMessage,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        else -> {}
+    }
 
 
 
@@ -221,10 +257,13 @@ fun LoginScreen(
                             LaunchedEffect(
                                 key1 = Unit,
                                 block = {
+                                    tokenViewModel.saveToken((loginResponse as ApiResponse.Success<LoginResponse>).data.accessToken)
+                                    tokenViewModel.saveRefreshToken((loginResponse as ApiResponse.Success<LoginResponse>).data.refreshToken)
                                     onNavigateToSubScreen.invoke(
                                         MainDestinations.HOME_ROUTE,
                                         backStackEntry
                                     )
+
                                 })
                         }
 

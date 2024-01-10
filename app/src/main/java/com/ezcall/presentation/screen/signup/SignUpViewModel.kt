@@ -23,11 +23,11 @@ class SignUpViewModel @Inject constructor(private val authRepository: AuthReposi
     val signUpResponse: LiveData<ApiResponse<SignUpResponse>> = _signUpResponse
 
 
-    var username by mutableStateOf("")
+    var phoneNumber by mutableStateOf("")
         private set
 
-    fun onUsernameChanged(newUsername: String) {
-        username = newUsername
+    fun onPhoneNumberChanged(newString: String) {
+        phoneNumber = newString
     }
 
     var email by mutableStateOf("")
@@ -45,9 +45,16 @@ class SignUpViewModel @Inject constructor(private val authRepository: AuthReposi
     }
 
     fun onSignUpClicked(coroutinesErrorHandler: CoroutinesErrorHandler) {
-        if (username.isNotEmpty() && password.isNotEmpty()) {
+        if (phoneNumber.isNotEmpty() && password.isNotEmpty()) {
             val signUpResponse = baseRequest(_signUpResponse, coroutinesErrorHandler) {
-                authRepository.signUp(AuthSignUp(username, password,password, email))
+                authRepository.signUp(
+                    AuthSignUp(
+                        phoneNumber = phoneNumber,
+                        password = password,
+                        confirmPassword = password,
+                        email = email
+                    )
+                )
             }
 
         }

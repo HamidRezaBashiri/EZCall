@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -22,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +55,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import com.ezcall.R
 import com.ezcall.data.dataSource.remote.ApiResponse
+import com.ezcall.data.dataSource.remote.entities.LoginResponse
 import com.ezcall.presentation.CoroutinesErrorHandler
+import com.ezcall.presentation.TokenViewModel
 import com.ezcall.presentation.navigation.MainDestinations
 
 
@@ -65,6 +65,7 @@ import com.ezcall.presentation.navigation.MainDestinations
 @Composable
 fun SignUpScreen(
     viewModel: SignUpViewModel = hiltViewModel(),
+    tokenViewModel: TokenViewModel = hiltViewModel(),
     onSignUpSuccess: (String, NavBackStackEntry) -> Unit,
     backStackEntry: NavBackStackEntry,
 ) {
@@ -167,9 +168,9 @@ fun SignUpScreen(
                 )
 
                 OutlinedTextField(
-                    isError = isErrorDisplayed && viewModel.username.isEmpty(),
-                    value = viewModel.username,
-                    onValueChange = viewModel::onUsernameChanged,
+                    isError = isErrorDisplayed && viewModel.phoneNumber.isEmpty(),
+                    value = viewModel.phoneNumber,
+                    onValueChange = viewModel::onPhoneNumberChanged,
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(userNameFocusRequester),
@@ -253,6 +254,7 @@ fun SignUpScreen(
                         viewModel.onSignUpClicked(object : CoroutinesErrorHandler {
                             override fun onError(message: String) {
                                 Log.e("SignUpScreen OnClick", "onError: $message")
+//                                TODO fix correct appreance for when error happens
                             }
 
                         })
@@ -264,6 +266,8 @@ fun SignUpScreen(
                             LaunchedEffect(
                                 key1 = Unit,
                                 block = {
+                                    tokenViewModel.saveToken((loginResponse as ApiResponse.Success<LoginResponse>).data.accessToken)
+                                    tokenViewModel.saveRefreshToken((loginResponse as ApiResponse.Success<LoginResponse>).data.refreshToken)
                                     onSignUpSuccess.invoke(
                                         MainDestinations.HOME_ROUTE,
                                         backStackEntry
@@ -273,6 +277,7 @@ fun SignUpScreen(
 
                         is ApiResponse.Failure -> {
                             Text(stringResource(R.string.login))
+                            Log.i("TAG", "SignUpScreen: ${(loginResponse as ApiResponse.Failure).errorMessage}" )
                             LaunchedEffect(key1 = Unit, block = {
                                 isToastDisplayed = true
                             })
@@ -283,15 +288,16 @@ fun SignUpScreen(
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
+                            Log.e("TAG", "SignUpScreen: ${(loginResponse as ApiResponse.Failure).errorMessage}", )
                         }
 
                         is ApiResponse.Loading -> {
-                            CircularProgressIndicator(
-                                color = Color.White, modifier = Modifier
-                                    .height(32.dp)
-                                    .width(32.dp)
-
-                            )
+//                            CircularProgressIndicator(
+//                                color = Color.White, modifier = Modifier
+//                                    .height(32.dp)
+//                                    .width(32.dp)
+//
+//                            )
                         }
 
                         else -> {

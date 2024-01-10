@@ -103,6 +103,11 @@ dependencies {
     //Splash Screen
     implementation("androidx.core:core-splashscreen:1.0.1")
 
+    //Webrtc SDK
+    implementation("io.getstream:stream-webrtc-android:1.1.0")
+    implementation ("io.getstream:stream-log:1.1.4")
+
+
 // Android logging
 //    implementation("sk.baka.slf4j:slf4j-handroid:1.7.27")
 

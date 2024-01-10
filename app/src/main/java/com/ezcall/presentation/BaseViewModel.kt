@@ -1,5 +1,6 @@
 package com.ezcall.presentation
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,7 +35,6 @@ open class BaseViewModel @Inject constructor() : ViewModel() {
         mJob = viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, error ->
             viewModelScope.launch(Dispatchers.Main) {
                 errorHandler.onError(error.localizedMessage ?: "Error occurred! Pleas try again.")
-
             }
         }) {
             request().collect {

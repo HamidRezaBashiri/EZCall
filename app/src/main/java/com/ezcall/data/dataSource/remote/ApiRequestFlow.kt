@@ -21,9 +21,11 @@ fun <T> apiRequestFlow(call: suspend () -> Response<T>): Flow<ApiResponse<T>> = 
             } else {
                 response.errorBody()?.let { error ->
                     error.close()
-                    val parsedError: ErrorResponse =
-                        Gson().fromJson(error.charStream(), ErrorResponse::class.java)
-                    emit(ApiResponse.Failure(parsedError.message, parsedError.code))
+                    emit(ApiResponse.Failure(error.toString(),100))
+//                    TODO FIX ERROR RESPONSE MODEL AND PARSING
+//                    val parsedError: ErrorResponse =
+//                        Gson().fromJson(error.charStream(), ErrorResponse::class.java)
+//                    emit(ApiResponse.Failure(parsedError.message, parsedError.code))
                 }
             }
         } catch (e: Exception) {
